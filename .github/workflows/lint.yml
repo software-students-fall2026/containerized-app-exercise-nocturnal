@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         # repeat same job for each subsystem in the following subdirectories
-        subdir: [web-app, machine-learning-client]
+        subdir: [web-app, ml-client]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.10" # update version(s) as needed
       - name: Install dependencies
-        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
+        if: ${{ matrix.subdir == 'web-app' && hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         run: |
           cd ${{ matrix.subdir }}
           python -m pip install --upgrade pip
@@ -23,14 +23,29 @@ jobs:
           pipenv sync --dev --python $(which python)
           pipenv shell --fancy --python $(which python)
       - name: Lint with pylint
-        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
+        if: ${{ matrix.subdir == 'web-app' && hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         # you may set pylint to ignore any files or dependencies that make no sense to lint
         run: |
           cd ${{ matrix.subdir }}
           pipenv run pylint **/*.py
       - name: Format with black
-        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
+        if: ${{ matrix.subdir == 'web-app' && hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         # you may set black to ignore any files or dependencies that make no sense to format
         run: |
           cd ${{ matrix.subdir }}
           pipenv run black --diff --check .
+      - name: Install ml client system libraries
+        if: ${{ matrix.subdir == 'ml-client' }}
+        run: sudo apt-get update && sudo apt-get install -y libxcb1 libgl1 libglib2.0-0
+      - name: Install ml client dependencies
+        if: ${{ matrix.subdir == 'ml-client' }}
+        working-directory: ml-client
+        run: python -m pip install -r requirements.txt
+      - name: Lint ml client with pylint
+        if: ${{ matrix.subdir == 'ml-client' }}
+        working-directory: ml-client
+        run: pylint model.py server.py tests/*.py
+      - name: Format ml client with black
+        if: ${{ matrix.subdir == 'ml-client' }}
+        working-directory: ml-client
+        run: black --diff --check .

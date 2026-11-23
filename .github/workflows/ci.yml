@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    defaults:
+      run:
+        working-directory: ml-client
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Python and packages
+        run: docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t nocturnal-ml .
+
+      - name: Confirm 100% Test Coverage
+        run: docker run --rm nocturnal-ml python -m pytest

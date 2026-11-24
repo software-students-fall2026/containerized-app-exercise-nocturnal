@@ -1,13 +1,18 @@
 ARG PYTHON_VERSION=3.10
 FROM python:${PYTHON_VERSION}-slim
 
+#set the working directory in the image
 WORKDIR /app
 
-RUN pip install pipenv
+#install dependencies into the image
+COPY requirements.txt ./
+RUN pip3 install -r requirements.txt
 
-COPY Pipfile Pipfile.lock ./
-RUN pipenv install --system --deploy --dev
-
+# add files from local machine into a Docker image
 ADD . .
 
-CMD ["python3", "-m", "flask", "--app", "run", "--host=0.0.0.0", "--port=5000"]
+# expose port that the Flask app is running on
+EXPOSE 5000
+
+# Run app.py when the container launches
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"]

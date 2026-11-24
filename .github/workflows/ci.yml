@@ -16,13 +16,13 @@ jobs:
 
     defaults:
       run:
-        working-directory: ml-client
+        working-directory: machine-learning-client
 
     steps:
       - uses: actions/checkout@v5
 
       - name: Install Python and packages
-        run: docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t nocturnal-ml .
+        run: docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t machine-learning-client .
 
       - name: Confirm 100% Test Coverage
-        run: docker run --rm nocturnal-ml python -m pytest
+        run: docker run --rm machine-learning-client python -m pytest --cov=model --cov=server --cov-report=term-missing --cov-fail-under=100
